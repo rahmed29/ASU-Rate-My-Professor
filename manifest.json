@@ -1,0 +1,14 @@
+{
+    "manifest_version":2,
+    "version":"1.0",
+    "name":"ASU RateMyProfessor",
+    "content_scripts":[
+      {
+       "matches":["*://catalog.apps.asu.edu/*"],
+       "js":["main.js"]
+      }
+    ],
+    "permissions": [
+      "*://www.ratemyprofessors.com/*"
+    ]
+}
