@@ -175,7 +175,7 @@ async function rmp()
             {
                 let teach = teachers[i].replace(/[0-9]/g, '')
                 let response
-                //check if rating has alreayd been fetched and don't fetch it again and instead get it from array of saved scores
+                //check if rating has already been fetched and don't fetch it again and instead get it from array of saved scores
                 if(fetchedScores.findIndex(e => e.name === teach) < 0)
                 {
                     response = await getProfScore(teach)
