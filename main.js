@@ -3,6 +3,8 @@ let hasChangedPage
 let auth = "dGVzdDp0ZXN0" 
 let fetchedScores = []
 
+getAuth()
+
 async function getAuth()
 {
     const init = await fetch("https://www.ratemyprofessors.com/", {
@@ -14,31 +16,27 @@ async function getAuth()
 
     if(init.ok)
     {
-        let responseBody = await init.text()
-        let str = ""
-        for(let i = 0; i < responseBody.length; i++)
+        let desired = '"REACT_APP_GRAPHQL_AUTH":"';
+        let responseBody = await init.text();
+        let str = "";
+        let start = responseBody.indexOf(desired) + desired.length;
+        let end = start;
+        for(let i = start, n = responseBody.length; i < n; i++)
         {
-            if(responseBody.substring(i,i+22) == "REACT_APP_GRAPHQL_AUTH")
+            if(responseBody.substring(i,i+1) == '"')
             {
-                let start = i+25
-                let end = start
-                for(let j = start; j < responseBody.length; j++)
-                {
-                    if(responseBody.substring(j,j+1) == '"')
-                    {
-                        str = responseBody.substring(start, end)
-                        j = responseBody.length
-                    }
-                    else
-                    {
-                        end += 1
-                    }
-                }
-                i = responseBody.length
+                str = responseBody.substring(start, end)
+                i = n
+            }
+            else
+            {
+                end += 1;
             }
         }
+        console.log(str)
         return str
     }
+    return "error"
 }
 
 async function realScore(id)
@@ -155,7 +153,7 @@ async function rmp()
             let teachers = []
             let profiles = document.links
 
-            for(let i = 0; i < profiles.length; i++)
+            for(let i = 0, n = profiles.length; i < n; i++)
             {
                 let profile = profiles[i].innerText.replace(new RegExp("[(](.+?)[)]", 'g'),"")
 	            if(profiles[i].href.substring(0,31) == "https://search.asu.edu/profile/" && !teachers.includes(profile))
@@ -171,11 +169,11 @@ async function rmp()
             }
             //Log the last professor in the list
             str = teachers[teachers.length-1].replace(/[^A-Z0-9]+/ig, "")
-            for(let i = 0; i < teachers.length; i++)
+            for(let i = 0,n = teachers.length; i < n; i++)
             {
                 let teach = teachers[i].replace(/[0-9]/g, '')
                 let response
-                //check if rating has already been fetched and don't fetch it again and instead get it from array of saved scores
+                //check if rating has alreayd been fetched and don't fetch it again and instead get it from array of saved scores
                 if(fetchedScores.findIndex(e => e.name === teach) < 0)
                 {
                     response = await getProfScore(teach)
@@ -188,7 +186,6 @@ async function rmp()
                 else
                 {
                     response = fetchedScores[fetchedScores.findIndex(e => e.name === teach)]["avgRating"]
-                    console.log(teach + "'s score was already fetched before so grabbing from cache")
                 }
                 document.getElementById(teachers[i].replace(/[^A-Z0-9]+/ig, "")).innerText = response
                 if(response >= 4)
@@ -200,7 +197,6 @@ async function rmp()
                     document.getElementById(teachers[i].replace(/[^A-Z0-9]+/ig, "")).style.color = "#20aee8 "
                 }
             }
-            console.log("RMP Ratings have been loaded for this page")
             const timer = ms => new Promise(res => setTimeout(res, ms))
 
             async function load ()
@@ -210,7 +206,6 @@ async function rmp()
                     //See if the last professor in the list is still there, if not, the user most likely naviagted to the next/prev page or applied a filter and the ratings need to be re-fetched. This is not 100% reliable but so far it's the best thing I've tried
                     if(document.getElementById(str) != null)
                     {
-                        console.log("Page has not yet changed, checking again...")
                         await timer(1000)
                     }
                     else
@@ -228,7 +223,6 @@ async function rmp()
     catch(err)
     {
         hasChangedPage = true
-        console.log("ABORTED")
     }
 }
 
