@@ -5,17 +5,14 @@ let fetchedScores = []
 
 getAuth()
 
-async function getAuth()
-{
+async function getAuth() {
     const init = await fetch("https://www.ratemyprofessors.com/", {
         method: 'GET',
         headers: {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
         }
     })
-
-    if(init.ok)
-    {
+    if(init.ok) {
         let desired = '"REACT_APP_GRAPHQL_AUTH":"';
         let responseBody = await init.text();
         let str = "";
@@ -23,13 +20,10 @@ async function getAuth()
         let end = start;
         for(let i = start, n = responseBody.length; i < n; i++)
         {
-            if(responseBody.substring(i,i+1) == '"')
-            {
+            if(responseBody.substring(i,i+1) == '"') {
                 str = responseBody.substring(start, end)
                 i = n
-            }
-            else
-            {
+            } else {
                 end += 1;
             }
         }
@@ -48,27 +42,26 @@ async function realScore(id)
         }
     }
     const response = await fetch("https://www.ratemyprofessors.com/graphql", {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Basic ' + auth,
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-                'Referer': 'https://www.ratemyprofessors.com/',
-                'Host': 'www.ratemyprofessors.com',
-                'Origin': 'https://www.ratemyprofessors.com',
-            },
-            body: JSON.stringify(payload)
-        })
-        const json = await response.json()
-        let status = json['data']['node']['avgRating']
-        return(status)
+        method: 'POST',
+        headers: {
+            'Authorization': 'Basic ' + auth,
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+            'Referer': 'https://www.ratemyprofessors.com/',
+            'Host': 'www.ratemyprofessors.com',
+            'Origin': 'https://www.ratemyprofessors.com',
+        },
+        body: JSON.stringify(payload)
+    })
+    const json = await response.json()
+    let status = [json['data']['node']['avgRating'], json['data']['node']['legacyId']]
+    return status
 }
 
 async function getProfScore(name)
 {
     const prof = name
-    const payload = {"query":"query NewSearchTeachersQuery(\n  $query: TeacherSearchQuery!\n  $count: Int\n) {\n  newSearch {\n    teachers(query: $query, first: $count) {\n      didFallback\n      edges {\n        cursor\n        node {\n          id\n          legacyId\n          firstName\n          lastName\n          department\n          departmentId\n          school {\n            legacyId\n            name\n            id\n          }\n          ...CompareProfessorsColumn_teacher\n        }\n      }\n    }\n  }\n}\n\nfragment CompareProfessorsColumn_teacher on Teacher {\n  id\n  legacyId\n  firstName\n  lastName\n  school {\n    legacyId\n    name\n    id\n  }\n  department\n  departmentId\n  avgRating\n  numRatings\n  wouldTakeAgainPercentRounded\n  mandatoryAttendance {\n    yes\n    no\n    neither\n    total\n  }\n  takenForCredit {\n    yes\n    no\n    neither\n    total\n  }\n  ...NoRatingsArea_teacher\n  ...RatingDistributionWrapper_teacher\n}\n\nfragment NoRatingsArea_teacher on Teacher {\n  lastName\n  ...RateTeacherLink_teacher\n}\n\nfragment RatingDistributionWrapper_teacher on Teacher {\n  ...NoRatingsArea_teacher\n  ratingsDistribution {\n    total\n    ...RatingDistributionChart_ratingsDistribution\n  }\n}\n\nfragment RatingDistributionChart_ratingsDistribution on ratingsDistribution {\n  r1\n  r2\n  r3\n  r4\n  r5\n}\n\nfragment RateTeacherLink_teacher on Teacher {\n  legacyId\n  numRatings\n  lockStatus\n}\n","variables":{"query":{"text":prof,"schoolID":"U2Nob29sLTEzNjQ3"},"count":10}}
-    try
-    {
+    const payload = {"query":"query NewSearchTeachersQuery(\n  $query: TeacherSearchQuery!\n  $count: Int\n) {\n  newSearch {\n    teachers(query: $query, first: $count) {\n      didFallback\n      edges {\n        cursor\n        node {\n          id\n          legacyId\n          firstName\n          lastName\n          department\n          departmentId\n          school {\n            legacyId\n            name\n            id\n          }\n          ...CompareProfessorsColumn_teacher\n        }\n      }\n    }\n  }\n}\n\nfragment CompareProfessorsColumn_teacher on Teacher {\n  id\n  legacyId\n  firstName\n  lastName\n  school {\n    legacyId\n    name\n    id\n  }\n  department\n  departmentId\n  avgRating\n  numRatings\n  wouldTakeAgainPercentRounded\n  mandatoryAttendance {\n    yes\n    no\n    neither\n    total\n  }\n  takenForCredit {\n    yes\n    no\n    neither\n    total\n  }\n  ...NoRatingsArea_teacher\n  ...RatingDistributionWrapper_teacher\n}\n\nfragment NoRatingsArea_teacher on Teacher {\n  lastName\n  ...RateTeacherLink_teacher\n}\n\nfragment RatingDistributionWrapper_teacher on Teacher {\n  ...NoRatingsArea_teacher\n  ratingsDistribution {\n    total\n    ...RatingDistributionChart_ratingsDistribution\n  }\n}\n\nfragment RatingDistributionChart_ratingsDistribution on ratingsDistribution {\n  r1\n  r2\n  r3\n  r4\n  r5\n}\n\nfragment RateTeacherLink_teacher on Teacher {\n  legacyId\n  numRatings\n  lockStatus\n}\n","variables":{"query":{"text":`${name}`,"schoolID":"U2Nob29sLTE1NzIz"},"count":10}}
+    try {
         const response = await fetch("https://www.ratemyprofessors.com/graphql", {
             method: 'POST',
             headers: {
@@ -86,167 +79,125 @@ async function getProfScore(name)
             try
             {
                 let status = json['data']['newSearch']['teachers']['edges'][0]['node']['id']
-                return({ avgRating: await realScore(status) })
+                return(await realScore(status))
             }
-            catch(err)
-            {
-                return({ avgRating: "?" })
+            catch(err) {
+                return(["", ""])
             }
         }
-        else
-        {
-            return({ avgRating: "error" })
-        }   
-    }
-    catch(err)
-    {
-        try
-        {
-            console.log("auth token: '" + auth + "' may be expired. Fetching a new one")
-            auth = await getAuth()
-            console.log("New auth token: " + auth)
-            const response = await fetch("https://www.ratemyprofessors.com/graphql", {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Basic ' + auth,
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-                    'Referer': 'https://www.ratemyprofessors.com/',
-                    'Host': 'www.ratemyprofessors.com',
-                    'Origin': 'https://www.ratemyprofessors.com',
-
-                },
-                body: JSON.stringify(payload)
-            })
-            if(response.ok)
+    } catch(err) {
+        console.log("auth token: '" + auth + "' may be expired. Fetching a new one")
+        auth = await getAuth()
+        console.log("New auth token: " + auth)
+        const response = await fetch("https://www.ratemyprofessors.com/graphql", {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + auth,
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+                'Referer': 'https://www.ratemyprofessors.com/',
+                'Host': 'www.ratemyprofessors.com',
+                'Origin': 'https://www.ratemyprofessors.com',
+            },
+            body: JSON.stringify(payload)
+        })
+        if(response.ok) {
+            const json = await response.json()
+            try
             {
-                const json = await response.json()
-                try
-                {
-                    let status = json['data']['newSearch']['teachers']['edges'][0]['node']['id']
-                    return({ avgRating: await realScore(status) })
-                }
-                catch(err)
-                {
-                    return({ avgRating: "?" })
-                }
+                let status = json['data']['newSearch']['teachers']['edges'][0]['node']['id']
+                return(await realScore(status))
             }
-            else
-            {
-                return({ avgRating: "error" })
-            }
-            }
-        catch(err)
-        {
-            console.log("There was some other error and the rmp api could not be fetched even after getting a new auth token")
-            return({ avgRating: "error" })
+            catch(err){console.log(err)}
         }
     }
 }
 
-async function rmp()
-{
-    try
-    {
-        hasChangedPage = false
-        if(location.host == "catalog.apps.asu.edu")
-        {
-            let teachers = []
-            let profiles = document.links
+let lastProf
 
-            for(let i = 0, n = profiles.length; i < n; i++)
-            {
-                let profile = profiles[i].innerText.replace(new RegExp("[(](.+?)[)]", 'g'),"")
-	            if(profiles[i].href.substring(0,31) == "https://search.asu.edu/profile/" && !teachers.includes(profile))
-	            {
-                    profiles[i].innerHTML = profiles[i].innerHTML + " <span style = 'color:  red  ; font-weight: 800;' id = '" + profile.replace(/[^A-Z0-9]+/ig, "") + "'></span>"
-		            teachers.push(profile)
-	            }
-                else if(profiles[i].href.substring(0,31) == "https://search.asu.edu/profile/" && teachers.includes(profile))
-                {
-                    profiles[i].innerHTML = profiles[i].innerHTML + " <span style = 'color:  red  ; font-weight: 800;' id = '" + profile.replace(/[^A-Z0-9]+/ig, "") + i + "'></span>"
-		            teachers.push(profile + i)
-                }
-            }
-            //Log the last professor in the list
-            str = teachers[teachers.length-1].replace(/[^A-Z0-9]+/ig, "")
-            for(let i = 0,n = teachers.length; i < n; i++)
-            {
-                let teach = teachers[i].replace(/[0-9]/g, '')
-                let response
-                //check if rating has alreayd been fetched and don't fetch it again and instead get it from array of saved scores
-                if(fetchedScores.findIndex(e => e.name === teach) < 0)
-                {
-                    response = await getProfScore(teach)
-                    response = response["avgRating"]
-                    fetchedScores.push({
-                        name: teach,
-                        avgRating: response
+const timer = ms => new Promise(res => setTimeout(res, ms))
+
+function color(x) {
+    switch (true) {
+        case (x < 3):
+            return "red"
+        case (x < 4):
+            return "#20aee8"
+        default:
+            return "#10c829"
+            
+    }
+}
+
+let fetchedScore = []
+
+function rmp() {
+    try {
+        hasChangedPage = false
+        for(const link of document.links) {
+            if(link.href.substring(0,23) === "https://search.asu.edu/") {
+                try {
+                    link.nextElementSibling.remove();
+                } catch (err) {}
+                lastProf = link
+                const a = document.createElement("a")
+                if(fetchedScores.findIndex(e => e.name === link.innerText) >= 0) {
+                     let profDetails = fetchedScores[fetchedScores.findIndex(e => e.name === teach)]
+                    a.innerText = " " + profDetails[0]
+                    a.style.fontWeight = "bold"
+                    a.style.color = color(details[0])
+                    a.style.textDecoration = "none"
+                    a.href = "https://www.ratemyprofessors.com/professor/" + profDetails[1]
+                    link.after(a)
+                } else {
+                    let details 
+                    getProfScore(link.innerText).then((arr)=>{
+                        details = arr;
+                        fetchedScore.push({
+                            name: link.innerText,
+                               rating: details[0],
+                            link: details[1]
+                        })
+                        a.style.fontWeight = "bold"
+                        a.style.color = color(details[0])
+                        a.style.textDecoration = "none"
+                        a.innerText = " " + details[0],
+                        a.href = "https://www.ratemyprofessors.com/professor/" + details[1]
+                        link.after(a)
                     })
                 }
-                else
-                {
-                    response = fetchedScores[fetchedScores.findIndex(e => e.name === teach)]["avgRating"]
-                }
-                document.getElementById(teachers[i].replace(/[^A-Z0-9]+/ig, "")).innerText = response
-                if(response >= 4)
-                {
-                    document.getElementById(teachers[i].replace(/[^A-Z0-9]+/ig, "")).style.color = "#10c829"
-                }
-                else if(response < 4 && response >= 3)
-                {
-                    document.getElementById(teachers[i].replace(/[^A-Z0-9]+/ig, "")).style.color = "#20aee8 "
-                }
             }
-            const timer = ms => new Promise(res => setTimeout(res, ms))
-
-            async function load ()
-            {
-                for (var i = 0; i < 999999; i++)
-                {
-                    //See if the last professor in the list is still there, if not, the user most likely naviagted to the next/prev page or applied a filter and the ratings need to be re-fetched. This is not 100% reliable but so far it's the best thing I've tried
-                    if(document.getElementById(str) != null)
-                    {
-                        await timer(1000)
-                    }
-                    else
-                    {
-                        i = 999999
-                        hasChangedPage = true
-                    }
-                }
-            }
-
-            load()
         }
+        lastProf.id = "__lastProf"
+        async function load () {
+            while(document.getElementById("__lastProf") !== null) {
+                await timer(1000)
+            }
+            hasChangedPage = true
+        }
+        load()
     }
     //an error most likely indicates the user has changed the items in the list, so re-fetch the ratings. Once again, this is the best thing I could come up with so far
-    catch(err)
-    {
+    catch(err) {
+        console.log(err)
         hasChangedPage = true
     }
 }
 
 //Keep checking for list of classes to be loaded in before executing
 const interval = setInterval(function() {
-    if(document.getElementById("class-results") != null)
-    {
+    if(document.getElementById("class-results") != null) {
         clearInterval(interval)
         rmp()
-    }
-    else
-    {
+    } else {
         console.log("Page not yet loaded, retrying...")
     }
 }, 500)
 
 
-function watch()
-{
+function watch() {
     MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-
     var observer = new MutationObserver(function(mutations, observer) {
-        if(hasChangedPage)
-        {
+        if(hasChangedPage) {
             rmp()
         }
     })
