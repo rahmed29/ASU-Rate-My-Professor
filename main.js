@@ -49,7 +49,6 @@ async function realScore(id) {
     body: JSON.stringify(payload),
   });
   const json = await response.json();
-  console.log(json);
   let status = [
     json["data"]["node"]["avgRating"],
     json["data"]["node"]["legacyId"],
@@ -141,7 +140,8 @@ async function rmp(link) {
       allowHTML: true,
       content: "Loading...",
     })[0];
-    //
+    
+    lastTip.show();
     
 
     // set the prof details to cached results
@@ -179,6 +179,8 @@ async function rmp(link) {
         <a style = 'color: lightblue' target = '_blank' href = 'https://www.ratemyprofessors.com/professor/${profDetails.link}'>RMP Page</a>
       </div>
     `);
+
+    lastTip.show();
   }
 }
 
@@ -190,6 +192,11 @@ const interval = setInterval(function () {
       content: "ASU Rate My Professor: Hover over prof names for ratings",
     })[0];
     document.addEventListener("mouseover", async (e) => {
+      if (e.target.nodeName === "A") {
+        await rmp(e.target);
+      }
+    });
+    document.addEventListener("focusin", async (e) => {
       if (e.target.nodeName === "A") {
         await rmp(e.target);
       }
