@@ -6,4 +6,4 @@ This browser extension for FireFox allows you to view the RMP ratings of a profe
 You can download the extension here: https://addons.mozilla.org/en-US/firefox/addon/asu-ratemyprofessor/
 
 
-![](https://raw.githubusercontent.com/rahmed29/ASU-Rate-My-Professor/main/Screenshot 2024-08-15 135549.png)
+![](https://raw.githubusercontent.com/rahmed29/ASU-Rate-My-Professor/main/armp_example.png)
