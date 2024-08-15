@@ -48,14 +48,21 @@ async function realScore(id) {
     },
     body: JSON.stringify(payload),
   });
-  const json = await response.json();
-  let status = [
-    json["data"]["node"]["avgRating"],
-    json["data"]["node"]["legacyId"],
-    `${json["data"]["node"]["firstName"]} ${json["data"]["node"]["lastName"]}`,
-    json["data"]["node"]["avgDifficulty"],
-  ];
-  return status;
+  if (response.ok) {
+    const json = await response.json();
+    console.log(json);
+    let status = {
+      avgRating: json["data"]["node"]["avgRating"],
+      legacyId: json["data"]["node"]["legacyId"],
+      name: `${json["data"]["node"]["firstName"]} ${json["data"]["node"]["lastName"]}`,
+      avgDifficulty: json["data"]["node"]["avgDifficulty"],
+      wta: json["data"]["node"]["wouldTakeAgainPercent"],
+      numRatings: json["data"]["node"]["numRatings"],
+    };
+    return status;
+  } else {
+    throw new Error("Response not ok");
+  }
 }
 
 async function getProfScore(name) {
@@ -91,45 +98,59 @@ async function getProfScore(name) {
           name.replaceAll(" ", "")
       )["node"]["id"];
       return await realScore(status);
+    } else {
+      return {
+        avgRating: undefined,
+        legacyId: undefined,
+        name: undefined,
+        avgDifficulty: undefined,
+        wta: undefined,
+        numRatings: undefined,
+      };
     }
   } catch (err) {
-    return [1337, 1337, "Error", 1337];
+    return {
+      avgRating: undefined,
+      legacyId: undefined,
+      name: undefined,
+      avgDifficulty: undefined,
+      wta: undefined,
+      numRatings: undefined,
+    };
   }
 }
 
 function color(x) {
   switch (true) {
+    case x === undefined:
+      return "gray";
     case x < 3:
       return "lightcoral";
     case x < 4:
       return "goldenrod";
     case x < 6:
       return "lightgreen";
-    case x === 1337:
-      return "gray";
   }
 }
 
 function diffColor(x) {
   switch (true) {
+    case x === undefined:
+      return "gray";
     case x < 3:
       return "lightgreen";
     case x < 4:
       return "goldenrod";
     case x < 6:
       return "lightcoral";
-    case x === 1337:
-      return "gray";
   }
 }
 
 let fetchedScores = new Map();
 let lastTip;
-let profDetails = {};
 
 async function rmp(link) {
   if (link.href.substring(0, 23) === "https://search.asu.edu/") {
-
     // delete the last tooltip
     try {
       lastTip.destroy();
@@ -140,43 +161,58 @@ async function rmp(link) {
       allowHTML: true,
       content: "Loading...",
     })[0];
-    
+
     lastTip.show();
-    
 
     // set the prof details to cached results
-    profDetails = fetchedScores.get(link.innerText);
-    
+    let profDetails = fetchedScores.get(link.innerText);
+
     // of no cached result, then get the ratings and such
     if (!profDetails) {
-      const arr = await getProfScore(link.innerText);
-      profDetails = {
-        rating: arr[0],
-        link: arr[1],
-        name: arr[2],
-        diff: arr[3],
-      };
+      profDetails = await getProfScore(link.innerText);
 
       // if there was an error, don't save it to the cached results
-      if (profDetails.name !== "Error") {
+      if (profDetails.name !== undefined) {
         fetchedScores.set(link.innerText, profDetails);
       }
     }
 
     // set the professor rating tooltip content
     lastTip.setContent(`
-      <div style = 'min-width: 150px;'>
-        <b>${profDetails.name}</b>
+      <div style = 'min-width: 150px; font-size: 1.1em; padding: 10px;'>
+        <b>${
+          profDetails.name === undefined
+            ? "Professor not found"
+            : profDetails.name
+        }</b>
         <br>
-        ---
+        <span aria-hidden="true">---</span>
         <br>
-        Avg Rating: <span style = 'color: ${color(profDetails.rating)}'>${profDetails.rating === 1337 ? "N/A" : profDetails.rating}</span>
+        Average Rating: <b style = 'color: ${color(profDetails.avgRating)}'>${
+      profDetails.avgRating === undefined ? "N/A" : profDetails.avgRating
+    }</b>
         <br>
-        Avg Difficulty: <span style = 'color: ${diffColor(profDetails.diff)}'>${profDetails.diff === 1337 ? "N/A" : profDetails.diff}</span>
+        Average Difficulty: <b style = 'color: ${diffColor(
+          profDetails.avgDifficulty
+        )}'>${
+      profDetails.avgDifficulty === undefined
+        ? "N/A"
+        : profDetails.avgDifficulty
+    }</b>
         <br>
-        ---
+        Would Take Again: <b>${
+          profDetails.wta === undefined ? "N/A" : profDetails.wta.toFixed(2)
+        }%</b>
         <br>
-        <a style = 'color: lightblue' target = '_blank' href = 'https://www.ratemyprofessors.com/professor/${profDetails.link}'>RMP Page</a>
+        # of Ratings: <b>${
+          profDetails.numRatings === undefined ? "N/A" : profDetails.numRatings
+        }</b>
+        <br>
+        <span aria-hidden="true">---</span>
+        <br>
+        <a style = 'color: lightblue' target = '_blank' href = 'https://www.ratemyprofessors.com/professor/${
+          profDetails.legacyId
+        }'>Rate My Professor Page</a>
       </div>
     `);
 
@@ -189,7 +225,8 @@ const interval = setInterval(function () {
   if (document.getElementById("class-results") != null) {
     clearInterval(interval);
     lastTip = tippy("#class-results", {
-      content: "ASU Rate My Professor: Hover over prof names for ratings",
+      content:
+        "ASU Rate My Professor: Hover over a professor's name for ratings",
     })[0];
     document.addEventListener("mouseover", async (e) => {
       if (e.target.nodeName === "A") {
@@ -205,8 +242,6 @@ const interval = setInterval(function () {
     console.log("Page not yet loaded, retrying...");
   }
 }, 500);
-
-
 
 //
 // popper + tippy
