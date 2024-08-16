@@ -137,9 +137,9 @@ function diffColor(x) {
   switch (true) {
     case x === undefined:
       return "gray";
-    case x < 3:
+    case x < 3.7:
       return "lightgreen";
-    case x < 4:
+    case x < 4.1:
       return "goldenrod";
     case x < 6:
       return "lightcoral";
@@ -148,6 +148,39 @@ function diffColor(x) {
 
 let fetchedScores = new Map();
 let lastTip;
+
+function isFloat(n) {
+  return Number(n) === n && n % 1 !== 0;
+}
+
+function addSpacer(parent) {
+  const br = document.createElement("br");
+  const spacer = document.createElement("span");
+  spacer.innerText = "---";
+  spacer.ariaHidden = true;
+  parent.appendChild(spacer);
+  parent.appendChild(br);
+}
+
+function addDetails(parent, statName, stat, color, extra = "") {
+  if (isFloat(stat)) {
+    stat = stat.toFixed(1);
+  }
+
+  const br = document.createElement("br");
+  const span = document.createElement("span");
+  span.innerText = `${statName}: `;
+  const b = document.createElement("b");
+  if (stat === undefined) {
+    stat = "N/A";
+    extra = "";
+  }
+  b.style.color = color ? color(stat) : "white";
+  b.innerText = stat + extra;
+  span.appendChild(b);
+  parent.appendChild(span);
+  parent.appendChild(br);
+}
 
 async function rmp(link) {
   if (link.href.substring(0, 23) === "https://search.asu.edu/") {
@@ -177,45 +210,39 @@ async function rmp(link) {
       }
     }
 
-    // set the professor rating tooltip content
-    lastTip.setContent(`
-      <div style = 'min-width: 150px; font-size: 1.1em; padding: 10px;'>
-        <b>${
-          profDetails.name === undefined
-            ? "Professor not found"
-            : profDetails.name
-        }</b>
-        <br>
-        <span aria-hidden="true">---</span>
-        <br>
-        Average Rating: <b style = 'color: ${color(profDetails.avgRating)}'>${
-      profDetails.avgRating === undefined ? "N/A" : profDetails.avgRating
-    }</b>
-        <br>
-        Average Difficulty: <b style = 'color: ${diffColor(
-          profDetails.avgDifficulty
-        )}'>${
-      profDetails.avgDifficulty === undefined
-        ? "N/A"
-        : profDetails.avgDifficulty
-    }</b>
-        <br>
-        Would Take Again: <b>${
-          profDetails.wta === undefined ? "N/A" : profDetails.wta.toFixed(2)
-        }%</b>
-        <br>
-        # of Ratings: <b>${
-          profDetails.numRatings === undefined ? "N/A" : profDetails.numRatings
-        }</b>
-        <br>
-        <span aria-hidden="true">---</span>
-        <br>
-        <a style = 'color: lightblue' target = '_blank' href = 'https://www.ratemyprofessors.com/professor/${
-          profDetails.legacyId
-        }'>Rate My Professor Page</a>
-      </div>
-    `);
+    // Create card
+    const card = document.createElement("div");
+    card.style.minWidth = "150px";
+    card.style.fontSize = "1.1em";
+    card.style.padding = "10px";
+    const profName = document.createElement("b");
+    profName.innerText =
+      profDetails.name === undefined ? "Professor not found" : profDetails.name;
+    const br = document.createElement("br");
+    card.appendChild(profName);
+    card.appendChild(br);
+    addSpacer(card);
+    addDetails(card, "Average Rating", profDetails.avgRating, color);
+    addDetails(
+      card,
+      "Average Difficulty",
+      profDetails.avgDifficulty,
+      diffColor
+    );
+    addDetails(card, "Would Take Again", profDetails.wta, null, "%");
+    addDetails(card, "# of Ratings", profDetails.numRatings, null);
+    addSpacer(card);
+    if (profDetails.legacyId !== undefined) {
+      const a = document.createElement("a");
+      a.innerText = "Rate My Professor Page";
+      a.href = `https://www.ratemyprofessors.com/professor/${profDetails.legacyId}`;
+      a.target = "_blank";
+      a.style.color = "lightblue";
+      card.appendChild(a);
+    }
 
+    // set the professor rating tooltip content
+    lastTip.setContent(card);
     lastTip.show();
   }
 }
