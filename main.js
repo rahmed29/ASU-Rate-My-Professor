@@ -234,7 +234,7 @@ async function rmp(link) {
     addSpacer(card);
     if (profDetails.legacyId !== undefined) {
       const a = document.createElement("a");
-      a.innerText = "Rate My Professor Page";
+      a.innerText = "Rate My Professors Page";
       a.href = `https://www.ratemyprofessors.com/professor/${profDetails.legacyId}`;
       a.target = "_blank";
       a.style.color = "lightblue";
