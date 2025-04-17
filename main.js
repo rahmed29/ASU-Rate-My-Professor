@@ -253,7 +253,7 @@ const interval = setInterval(function () {
     clearInterval(interval);
     lastTip = tippy("#class-results", {
       content:
-        "ASU Rate My Professor: Hover over a professor's name for ratings",
+        "ASU Rate My Professors: Hover over a professor's name for ratings",
     })[0];
     document.addEventListener("mouseover", async (e) => {
       if (e.target.nodeName === "A") {
